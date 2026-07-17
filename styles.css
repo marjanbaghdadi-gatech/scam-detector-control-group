@@ -32,12 +32,70 @@ body {
   border-radius: 16px;
   box-shadow: var(--shadow);
   margin: 22px 0;
-  padding: 22px;
+  overflow: hidden;
+}
+
+.toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 22px 24px;
+  border: none;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggle-button:hover,
+.toggle-button:focus-visible {
+  background: #eef4fc;
+}
+
+.toggle-button[aria-expanded="true"] {
+  background: #eaf3ff;
+  border-bottom: 1px solid var(--border);
+}
+
+.toggle-title {
+  color: var(--brand-dark);
+}
+
+.toggle-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid var(--brand);
+  color: var(--brand);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .pages {
   display: grid;
   gap: 18px;
+  padding: 22px 24px;
+}
+
+.pages[hidden] {
+  display: none;
+}
+
+.loading-note {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+  text-align: center;
 }
 
 .page-shell {
@@ -96,5 +154,6 @@ canvas {
 @media (max-width: 680px) {
   body { font-size: 16px; }
   .container { width: min(100% - 22px, 1120px); }
-  .pdf-section { padding: 16px; }
+  .toggle-button { padding: 18px; font-size: 1.1rem; }
+  .pages { padding: 18px; }
 }
