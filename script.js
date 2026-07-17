@@ -1,4 +1,5 @@
 const POST_SURVEY_URL = 'https://gatech.co1.qualtrics.com/jfe/form/SV_1YRlFkYcZXiWoS2';
+const SHOW_VIDEO_STORIES = false;
 
 const guides = [
   {
@@ -21,6 +22,37 @@ const guides = [
   }
 ];
 
+const videos = [
+  {
+    id: 'v-medicare',
+    title: 'Medicare Scams',
+    source: 'FTC',
+    embedUrl: 'https://player.vimeo.com/video/352056598',
+    sourceUrl: 'https://consumer.ftc.gov/media/video-0132-fraud-affects-every-community-medicare-scams'
+  },
+  {
+    id: 'v-family',
+    title: 'Family Emergency Scams',
+    source: 'FTC',
+    embedUrl: 'https://player.vimeo.com/video/352058971',
+    sourceUrl: 'https://consumer.ftc.gov/media/79939'
+  },
+  {
+    id: 'v-elder',
+    title: 'Beware of Elder Fraud Scams',
+    source: 'FBI',
+    embedUrl: 'https://www.youtube.com/embed/RfAquS5wuTc',
+    sourceUrl: 'https://www.fbi.gov/video-repository/elder-fraud-psa-052123.mp4/view'
+  },
+  {
+    id: 'v-webster',
+    title: 'Former Director William Webster Offers Warning About Elder Fraud',
+    source: 'FBI',
+    embedUrl: 'https://www.youtube.com/embed/BNlPQvdRf1E',
+    sourceUrl: 'https://www.fbi.gov/video-repository/webster-elder-fraud-psa-040722.mp4/view'
+  }
+];
+
 const PID_STORAGE_KEY = 'studyPid';
 
 const params = new URLSearchParams(window.location.search);
@@ -34,26 +66,46 @@ if (pid) {
 }
 
 const sectionContainer = document.getElementById('pdf-sections');
+const videoContainer = document.getElementById('video-section');
 const continueBtn = document.getElementById('continueBtn');
 const pidWarning = document.getElementById('pidWarning');
 
-function createGuideSection(guide) {
+function createToggleSection({ id, title, panelClass }) {
   const section = document.createElement('article');
   section.className = 'pdf-section';
-  section.id = guide.id;
+  section.id = id;
   section.innerHTML = `
-    <button class="toggle-button" type="button" aria-expanded="false" aria-controls="pages-${guide.id}">
-      <span class="toggle-title">${guide.title}</span>
+    <button class="toggle-button" type="button" aria-expanded="false" aria-controls="panel-${id}">
+      <span class="toggle-title">${title}</span>
       <span class="toggle-icon" aria-hidden="true">+</span>
     </button>
-    <div class="pages" id="pages-${guide.id}" hidden></div>
+    <div class="${panelClass}" id="panel-${id}" hidden></div>
   `;
   return section;
 }
 
-async function renderGuide(guide) {
-  const pagesNode = document.getElementById(`pages-${guide.id}`);
-  pagesNode.innerHTML = '<p class="loading-note">Loading...</p>';
+function setupToggle(id, onFirstOpen) {
+  const section = document.getElementById(id);
+  const button = section.querySelector('.toggle-button');
+  const icon = section.querySelector('.toggle-icon');
+  const panelNode = document.getElementById(`panel-${id}`);
+  let opened = false;
+
+  button.addEventListener('click', () => {
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!isOpen));
+    panelNode.hidden = isOpen;
+    icon.textContent = isOpen ? '+' : '−';
+
+    if (!isOpen && !opened) {
+      opened = true;
+      onFirstOpen(panelNode);
+    }
+  });
+}
+
+async function renderGuide(guide, panelNode) {
+  panelNode.innerHTML = '<p class="loading-note">Loading...</p>';
   try {
     const pdfjsLib = window.pdfjsLib;
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
@@ -61,7 +113,7 @@ async function renderGuide(guide) {
     const loadingTask = pdfjsLib.getDocument({ url: guide.url, withCredentials: false });
     const pdf = await loadingTask.promise;
 
-    pagesNode.innerHTML = '';
+    panelNode.innerHTML = '';
     for (const pageNum of guide.showPages) {
       if (pageNum > pdf.numPages) continue;
       const page = await pdf.getPage(pageNum);
@@ -74,40 +126,47 @@ async function renderGuide(guide) {
       const shell = document.createElement('div');
       shell.className = 'page-shell';
       shell.appendChild(canvas);
-      pagesNode.appendChild(shell);
+      panelNode.appendChild(shell);
 
       await page.render({ canvasContext: context, viewport }).promise;
     }
   } catch (error) {
     console.error(`Could not render ${guide.id}`, error);
-    pagesNode.innerHTML = '<p class="loading-note">This guide could not be loaded.</p>';
+    panelNode.innerHTML = '<p class="loading-note">This guide could not be loaded.</p>';
   }
 }
 
-function setupToggle(guide) {
-  const section = document.getElementById(guide.id);
-  const button = section.querySelector('.toggle-button');
-  const icon = section.querySelector('.toggle-icon');
-  const pagesNode = document.getElementById(`pages-${guide.id}`);
-  let rendered = false;
-
-  button.addEventListener('click', () => {
-    const isOpen = button.getAttribute('aria-expanded') === 'true';
-    button.setAttribute('aria-expanded', String(!isOpen));
-    pagesNode.hidden = isOpen;
-    icon.textContent = isOpen ? '+' : '−';
-
-    if (!isOpen && !rendered) {
-      rendered = true;
-      renderGuide(guide);
-    }
-  });
+function renderVideos(panelNode) {
+  panelNode.innerHTML = '';
+  for (const video of videos) {
+    const card = document.createElement('div');
+    card.className = 'video-card';
+    card.innerHTML = `
+      <p class="video-title">${video.source}: ${video.title}</p>
+      <div class="video-frame">
+        <iframe
+          src="${video.embedUrl}"
+          title="${video.source}: ${video.title}"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <a class="video-source-link" href="${video.sourceUrl}" target="_blank" rel="noopener">View on official ${video.source} website</a>
+    `;
+    panelNode.appendChild(card);
+  }
 }
 
 function init() {
   for (const guide of guides) {
-    sectionContainer.appendChild(createGuideSection(guide));
-    setupToggle(guide);
+    sectionContainer.appendChild(createToggleSection({ id: guide.id, title: guide.title, panelClass: 'pages' }));
+    setupToggle(guide.id, (panelNode) => renderGuide(guide, panelNode));
+  }
+
+  if (SHOW_VIDEO_STORIES) {
+    videoContainer.appendChild(createToggleSection({ id: 'video-stories', title: 'Video Stories', panelClass: 'videos' }));
+    setupToggle('video-stories', renderVideos);
   }
 
   if (!pid) {
