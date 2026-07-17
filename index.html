@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Static Fraud-Awareness Guide</title>
+  <meta name="description" content="Static fraud-awareness guide for study participants using selected FDIC/CFPB Money Smart for Older Adults resource guides." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section id="pdf-sections" class="pdf-sections" aria-label="Money Smart guide sections"></section>
+
+    <div class="continue-wrap">
+      <button id="continueBtn" class="primary-button" type="button">Go to post survey</button>
+      <p id="pidWarning" class="warning" hidden>
+        Study ID was not found in the page URL. Please return to the pre-survey link and open this page from there.
+      </p>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
+  <script src="script.js" type="module"></script>
+</body>
+</html>
