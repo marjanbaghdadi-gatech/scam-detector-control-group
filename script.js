@@ -21,8 +21,18 @@ const guides = [
   }
 ];
 
+const PID_STORAGE_KEY = 'studyPid';
+
 const params = new URLSearchParams(window.location.search);
-const pid = params.get('pid') || params.get('PID') || '';
+const urlPid = params.get('pid') || params.get('PID') || '';
+let pid = urlPid;
+
+if (pid) {
+  sessionStorage.setItem(PID_STORAGE_KEY, pid);
+} else {
+  pid = sessionStorage.getItem(PID_STORAGE_KEY) || '';
+}
+
 const sectionContainer = document.getElementById('pdf-sections');
 const continueBtn = document.getElementById('continueBtn');
 const pidWarning = document.getElementById('pidWarning');
